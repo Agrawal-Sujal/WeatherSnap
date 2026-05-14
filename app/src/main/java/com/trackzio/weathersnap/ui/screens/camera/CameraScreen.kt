@@ -1,6 +1,10 @@
 package com.trackzio.weathersnap.ui.screens.camera
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -33,12 +37,42 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasCameraPermission = granted
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (!hasCameraPermission) {
+            launcher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    if (!hasCameraPermission) {
+        PermissionDeniedContent(onClose = onClose, onRetry = { launcher.launch(Manifest.permission.CAMERA) })
+        return
+    }
+
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
     DisposableEffect(Unit) {
         onDispose { cameraExecutor.shutdown() }
     }
+    
+    // ... existing Box content ...
 
     Box(
         modifier = Modifier
@@ -127,6 +161,47 @@ fun CameraScreen(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(vertical = 6.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun PermissionDeniedContent(onClose: () -> Unit, onRetry: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(DarkBackground),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                "Camera Permission Required",
+                color = TextPrimary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            val textSecondary = androidx.compose.ui.graphics.Color(0xFF9AAA78) // Manual color to match TextSecondary if not imported correctly
+            Text(
+                "This app needs camera access to take weather evidence photos. Please grant the permission.",
+                color = textSecondary,
+                fontSize = 14.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = onRetry,
+                colors = ButtonDefaults.buttonColors(containerColor = AccentGreenLight),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Grant Permission", color = DarkBackground)
+            }
+            TextButton(onClick = onClose) {
+                Text("Cancel", color = Color.White)
+            }
         }
     }
 }
