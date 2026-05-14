@@ -285,13 +285,75 @@ private fun EmptyWeatherState() {
 
 @Composable
 private fun LoadingState() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(color = AccentGreen)
+    Column(modifier = Modifier.padding(16.dp)) {
+        // City Name and Condition Shimmer
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(24.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmer()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmer()
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shimmer()
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Stat Cards Shimmer
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .shimmer()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Readiness Bar Shimmer
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .shimmer()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Button Shimmer
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .shimmer()
+        )
     }
 }
 
