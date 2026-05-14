@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.trackzio.weathersnap", appContext.packageName)
+        assertEquals("com.trackzio.weathersnap.debug", appContext.packageName)
     }
 }

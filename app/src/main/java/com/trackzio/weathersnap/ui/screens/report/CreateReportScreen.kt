@@ -95,6 +95,25 @@ fun CreateReportScreen(
         if (uiState.savedSuccessfully) onReportSaved()
     }
 
+    CreateReportScreenContent(
+        uiState = uiState,
+        weatherData = weatherData,
+        onNavigateBack = onNavigateBack,
+        onNavigateToCamera = onNavigateToCamera,
+        onNotesChange = reportViewModel::onNotesChange,
+        onSaveReport = reportViewModel::saveReport
+    )
+}
+
+@Composable
+fun CreateReportScreenContent(
+    uiState: ReportUiState,
+    weatherData: WeatherData?,
+    onNavigateBack: () -> Unit,
+    onNavigateToCamera: () -> Unit,
+    onNotesChange: (String) -> Unit,
+    onSaveReport: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -121,13 +140,13 @@ fun CreateReportScreen(
 
         NotesSection(
             notes = uiState.notes,
-            onNotesChange = reportViewModel::onNotesChange
+            onNotesChange = onNotesChange
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = rememberDebouncedClick { reportViewModel.saveReport() },
+            onClick = rememberDebouncedClick { onSaveReport() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),

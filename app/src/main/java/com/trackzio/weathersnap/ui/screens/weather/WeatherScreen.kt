@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,30 @@ fun WeatherScreen(
     val cityQuery by viewModel.cityQuery.collectAsState()
     val weatherState by viewModel.weatherState.collectAsState()
     val citySuggestions by viewModel.citySuggestions.collectAsState()
+
+    WeatherScreenContent(
+        cityQuery = cityQuery,
+        weatherState = weatherState,
+        citySuggestions = citySuggestions,
+        onCityQueryChange = viewModel::onCityQueryChange,
+        onSearch = viewModel::fetchWeather,
+        onCitySelected = viewModel::onCitySelected,
+        onNavigateToReport = onNavigateToReport,
+        onNavigateToSavedReports = onNavigateToSavedReports
+    )
+}
+
+@Composable
+fun WeatherScreenContent(
+    cityQuery: String,
+    weatherState: WeatherUiState,
+    citySuggestions: CitySuggestionState,
+    onCityQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onCitySelected: (CityResult) -> Unit,
+    onNavigateToReport: (WeatherData) -> Unit,
+    onNavigateToSavedReports: () -> Unit
+) {
     val scrollState = rememberScrollState()
 
     Column(
@@ -91,10 +116,10 @@ fun WeatherScreen(
         // Search section
         SearchSection(
             query = cityQuery,
-            onQueryChange = viewModel::onCityQueryChange,
-            onSearch = rememberDebouncedClick { viewModel.fetchWeather() },
+            onQueryChange = onCityQueryChange,
+            onSearch = rememberDebouncedClick { onSearch() },
             suggestionsState = citySuggestions,
-            onCitySelected = rememberDebouncedClickParam { viewModel.onCitySelected(it) }
+            onCitySelected = rememberDebouncedClickParam { onCitySelected(it) }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -434,6 +459,7 @@ private fun WeatherSuccessState(data: WeatherData, onCreateReport: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = data.cityName,
+                    modifier = Modifier.testTag("city_name"),
                     color = TextPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
