@@ -1,19 +1,21 @@
 package com.trackzio.weathersnap.ui.navigation
-import androidx.compose.animation.*
+
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.trackzio.weathersnap.ui.screens.camera.CameraScreen
 import com.trackzio.weathersnap.ui.screens.report.CreateReportScreen
 import com.trackzio.weathersnap.ui.screens.saved.SavedReportsScreen
+import com.trackzio.weathersnap.ui.screens.saved.SavedReportsViewModel
 import com.trackzio.weathersnap.ui.screens.weather.SharedWeatherViewModel
 import com.trackzio.weathersnap.ui.screens.weather.WeatherScreen
 
@@ -28,7 +30,8 @@ sealed class Screen(val route: String) {
 fun WeatherSnapNavGraph(
     navController: NavHostController = rememberNavController(),
     // Activity-scoped: hiltViewModel() at this level uses the Activity as ViewModelStoreOwner
-    sharedWeatherViewModel: SharedWeatherViewModel = hiltViewModel()
+    sharedWeatherViewModel: SharedWeatherViewModel = hiltViewModel(),
+    savedReportViewModel: SavedReportsViewModel = hiltViewModel()
 ) {
     NavHost(
         navController = navController,
@@ -96,7 +99,8 @@ fun WeatherSnapNavGraph(
 
         composable(Screen.SavedReports.route) {
             SavedReportsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                savedReportViewModel
             )
         }
     }

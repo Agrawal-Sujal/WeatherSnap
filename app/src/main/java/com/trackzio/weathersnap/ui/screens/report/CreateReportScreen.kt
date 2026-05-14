@@ -1,13 +1,42 @@
 package com.trackzio.weathersnap.ui.screens.report
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +51,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.trackzio.weathersnap.domain.model.WeatherData
 import com.trackzio.weathersnap.ui.screens.weather.SharedWeatherViewModel
-import com.trackzio.weathersnap.ui.theme.*
+import com.trackzio.weathersnap.ui.theme.AccentGreen
+import com.trackzio.weathersnap.ui.theme.AccentGreenLight
+import com.trackzio.weathersnap.ui.theme.BlueAccent
+import com.trackzio.weathersnap.ui.theme.BorderColor
+import com.trackzio.weathersnap.ui.theme.CardDark
+import com.trackzio.weathersnap.ui.theme.DarkBackground
+import com.trackzio.weathersnap.ui.theme.OrangeAccent
+import com.trackzio.weathersnap.ui.theme.SurfaceDark
+import com.trackzio.weathersnap.ui.theme.TealAccent
+import com.trackzio.weathersnap.ui.theme.TextPrimary
+import com.trackzio.weathersnap.ui.theme.TextSecondary
+import com.trackzio.weathersnap.ui.util.rememberDebouncedClick
 import java.io.File
 
 @Composable
@@ -62,7 +102,7 @@ fun CreateReportScreen(
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
     ) {
-        ReportHeader(onBack = onNavigateBack)
+        ReportHeader(onBack = rememberDebouncedClick { onNavigateBack() })
         Spacer(modifier = Modifier.height(12.dp))
 
         weatherData?.let { weather ->
@@ -74,7 +114,7 @@ fun CreateReportScreen(
             imagePath = uiState.capturedImagePath,
             originalKb = uiState.originalSizeKb,
             compressedKb = uiState.compressedSizeKb,
-            onCapturePhoto = onNavigateToCamera
+            onCapturePhoto = rememberDebouncedClick { onNavigateToCamera() }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -87,7 +127,7 @@ fun CreateReportScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = reportViewModel::saveReport,
+            onClick = rememberDebouncedClick { reportViewModel.saveReport() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),

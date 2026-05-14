@@ -1,18 +1,42 @@
 package com.trackzio.weathersnap.ui.screens.camera
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +50,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.trackzio.weathersnap.ui.theme.AccentGreenLight
 import com.trackzio.weathersnap.ui.theme.DarkBackground
 import com.trackzio.weathersnap.ui.theme.TextPrimary
+import com.trackzio.weathersnap.ui.util.rememberDebouncedClick
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -37,7 +62,7 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    
+
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -61,7 +86,9 @@ fun CameraScreen(
     }
 
     if (!hasCameraPermission) {
-        PermissionDeniedContent(onClose = onClose, onRetry = { launcher.launch(Manifest.permission.CAMERA) })
+        PermissionDeniedContent(
+            onClose = onClose,
+            onRetry = { launcher.launch(Manifest.permission.CAMERA) })
         return
     }
 
@@ -71,7 +98,7 @@ fun CameraScreen(
     DisposableEffect(Unit) {
         onDispose { cameraExecutor.shutdown() }
     }
-    
+
     // ... existing Box content ...
 
     Box(
@@ -129,7 +156,7 @@ fun CameraScreen(
                 fontWeight = FontWeight.Bold
             )
             OutlinedButton(
-                onClick = onClose,
+                onClick = rememberDebouncedClick { onClose() },
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
             ) {
@@ -184,7 +211,8 @@ private fun PermissionDeniedContent(onClose: () -> Unit, onRetry: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(12.dp))
-            val textSecondary = androidx.compose.ui.graphics.Color(0xFF9AAA78) // Manual color to match TextSecondary if not imported correctly
+            val textSecondary =
+                androidx.compose.ui.graphics.Color(0xFF9AAA78) // Manual color to match TextSecondary if not imported correctly
             Text(
                 "This app needs camera access to take weather evidence photos. Please grant the permission.",
                 color = textSecondary,
