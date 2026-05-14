@@ -1,7 +1,13 @@
 package com.trackzio.weathersnap.ui.theme
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 // Dark olive/forest green palette matching screenshots
@@ -17,6 +23,34 @@ val BlueAccent = Color(0xFF5A9DB5)
 val TextPrimary = Color(0xFFE8F0D0)
 val TextSecondary = Color(0xFF9AAA78)
 val BorderColor = Color(0xFF3A4228)
+
+@Composable
+fun Modifier.shimmer(): Modifier {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerTranslation"
+    )
+
+    val shimmerColors = listOf(
+        Color.White.copy(alpha = 0.05f),
+        Color.White.copy(alpha = 0.2f),
+        Color.White.copy(alpha = 0.05f),
+    )
+
+    return this.background(
+        brush = Brush.linearGradient(
+            colors = shimmerColors,
+            start = Offset(translateAnim - 200f, translateAnim - 200f),
+            end = Offset(translateAnim, translateAnim)
+        )
+    )
+}
 
 private val DarkColorScheme = darkColorScheme(
     primary = AccentGreen,

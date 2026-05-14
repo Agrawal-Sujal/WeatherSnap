@@ -132,12 +132,22 @@ private fun SearchSection(
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            val displayQuery = if (suggestionsState is CitySuggestionState.Loading && query.isEmpty()) "---" else query
             OutlinedTextField(
-                value = query,
+                value = displayQuery,
                 onValueChange = onQueryChange,
                 label = { Text("City", color = TextSecondary) },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
+                trailingIcon = {
+                    if (suggestionsState is CitySuggestionState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = AccentGreen,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AccentGreen,
                     unfocusedBorderColor = BorderColor,
@@ -164,12 +174,24 @@ private fun SearchSection(
             }
         }
 
-        Text(
-            text = "Enter more than 2 letters to start city suggestions.",
-            color = TextSecondary,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+        // Search feedback text
+        AnimatedVisibility(
+            visible = query.length <= 2 || suggestionsState is CitySuggestionState.Empty || suggestionsState is CitySuggestionState.Error,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            val feedbackText = when {
+                query.length <= 2 -> "Enter more than 2 letters to start city suggestions."
+                suggestionsState is CitySuggestionState.Error -> "Unable to load suggestions. Check your internet connection."
+                else -> "No cities found. Try adding more letters or check spelling."
+            }
+            Text(
+                text = feedbackText,
+                color = if (suggestionsState is CitySuggestionState.Error) Color(0xFFFF6B6B) else TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
 
         // Suggestions
         AnimatedVisibility(
@@ -264,27 +286,98 @@ private fun EmptyWeatherState() {
 
 @Composable
 private fun LoadingState() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(color = AccentGreen)
+    Column(modifier = Modifier.padding(16.dp)) {
+        // City Name and Condition Shimmer
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(24.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmer()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmer()
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shimmer()
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Stat Cards Shimmer
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(3) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .shimmer()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Readiness Bar Shimmer
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .shimmer()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Button Shimmer
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .shimmer()
+        )
     }
 }
 
 @Composable
 private fun ErrorState(message: String) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Error: $message",
+            text = "Oops! Something went wrong",
+            color = TextPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Check your internet connection or try again later.",
             color = Color(0xFFFF6B6B),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             fontSize = 14.sp
         )
     }
