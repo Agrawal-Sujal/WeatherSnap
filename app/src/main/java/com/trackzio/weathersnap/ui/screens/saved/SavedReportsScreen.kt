@@ -26,8 +26,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,10 +40,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.trackzio.weathersnap.data.local.WeatherReportEntity
 import com.trackzio.weathersnap.ui.theme.AccentGreenLight
+import com.trackzio.weathersnap.ui.theme.AccentGreen
 import com.trackzio.weathersnap.ui.theme.CardDark
 import com.trackzio.weathersnap.ui.theme.DarkBackground
 import com.trackzio.weathersnap.ui.theme.OrangeAccent
@@ -60,7 +64,11 @@ fun SavedReportsScreen(
     onNavigateBack: () -> Unit,
     viewModel: SavedReportsViewModel
 ) {
-    val reports by viewModel.reports.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadReports()
+    }
 
     Box(
         modifier = Modifier
@@ -72,27 +80,37 @@ fun SavedReportsScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            SavedReportsHeader(count = reports.size, onBack = rememberDebouncedClick { onNavigateBack() })
+            when (val state = uiState) {
+                is SavedReportsUiState.Loading -> {
+                    SavedReportsHeader(count = 0, onBack = rememberDebouncedClick { onNavigateBack() })
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = AccentGreen)
+                    }
+                }
+                is SavedReportsUiState.Success -> {
+                    SavedReportsHeader(count = state.reports.size, onBack = rememberDebouncedClick { onNavigateBack() })
 
-            Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            AnimatedContent(
-                targetState = reports.isEmpty(),
-                transitionSpec = {
-                    fadeIn() togetherWith fadeOut()
-                },
-                label = "SavedReportsContent"
-            ) { isEmpty ->
-                if (isEmpty) {
-                    EmptyState()
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(reports, key = { it.id }) { report ->
-                            ReportCard(report = report)
+                    AnimatedContent(
+                        targetState = state.reports.isEmpty(),
+                        transitionSpec = {
+                            fadeIn() togetherWith fadeOut()
+                        },
+                        label = "SavedReportsContent"
+                    ) { isEmpty ->
+                        if (isEmpty) {
+                            EmptyState()
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                items(state.reports, key = { it.id }) { report ->
+                                    ReportCard(report = report)
+                                }
+                            }
                         }
                     }
                 }
@@ -129,7 +147,7 @@ private fun SavedReportsHeader(count: Int, onBack: () -> Unit) {
             )
         }
         Button(
-            onClick = onBack,
+            onClick = rememberDebouncedClick { onBack() },
             modifier = Modifier.align(Alignment.CenterEnd),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D3D2E)),
             shape = RoundedCornerShape(12.dp)

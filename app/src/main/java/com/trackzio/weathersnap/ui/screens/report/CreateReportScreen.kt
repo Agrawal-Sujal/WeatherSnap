@@ -161,7 +161,7 @@ private fun ReportHeader(onBack: () -> Unit) {
             Text("Capture, compress, annotate", color = DarkBackground.copy(alpha = 0.7f), fontSize = 12.sp)
         }
         Button(
-            onClick = onBack,
+            onClick = rememberDebouncedClick { onBack() },
             modifier = Modifier.align(Alignment.CenterEnd),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D3D2E)),
             shape = RoundedCornerShape(12.dp)

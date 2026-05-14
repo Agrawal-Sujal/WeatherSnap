@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 
 @Composable
 fun rememberDebouncedClick(
-    debounceTime: Long = 800L,
+    debounceTime: Long = 1000L,
     onClick: () -> Unit
 ): () -> Unit {
     val clickState = remember { object { var lastTime = 0L } }

@@ -166,7 +166,7 @@ fun CameraScreen(
 
         // Bottom capture button
         Button(
-            onClick = {
+            onClick = rememberDebouncedClick {
                 captureImage(
                     context = context,
                     imageCapture = imageCapture,
