@@ -28,7 +28,7 @@ import java.util.*
 @Composable
 fun SavedReportsScreen(
     onNavigateBack: () -> Unit,
-    viewModel: SavedReportsViewModel = hiltViewModel()
+    viewModel: SavedReportsViewModel
 ) {
     val reports by viewModel.reports.collectAsStateWithLifecycle()
 
