@@ -132,8 +132,9 @@ private fun SearchSection(
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            val displayQuery = if (suggestionsState is CitySuggestionState.Loading && query.isEmpty()) "---" else query
             OutlinedTextField(
-                value = query,
+                value = displayQuery,
                 onValueChange = onQueryChange,
                 label = { Text("City", color = TextSecondary) },
                 modifier = Modifier.weight(1f),
@@ -175,18 +176,18 @@ private fun SearchSection(
 
         // Search feedback text
         AnimatedVisibility(
-            visible = query.length <= 2 || suggestionsState is CitySuggestionState.Empty,
+            visible = query.length <= 2 || suggestionsState is CitySuggestionState.Empty || suggestionsState is CitySuggestionState.Error,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
         ) {
-            val feedbackText = if (query.length <= 2) {
-                "Enter more than 2 letters to start city suggestions."
-            } else {
-                "No cities found. Try adding more letters or check spelling."
+            val feedbackText = when {
+                query.length <= 2 -> "Enter more than 2 letters to start city suggestions."
+                suggestionsState is CitySuggestionState.Error -> "Unable to load suggestions. Check your internet connection."
+                else -> "No cities found. Try adding more letters or check spelling."
             }
             Text(
                 text = feedbackText,
-                color = TextSecondary,
+                color = if (suggestionsState is CitySuggestionState.Error) Color(0xFFFF6B6B) else TextSecondary,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -359,15 +360,24 @@ private fun LoadingState() {
 
 @Composable
 private fun ErrorState(message: String) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Error: $message",
+            text = "Oops! Something went wrong",
+            color = TextPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Check your internet connection or try again later.",
             color = Color(0xFFFF6B6B),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             fontSize = 14.sp
         )
     }

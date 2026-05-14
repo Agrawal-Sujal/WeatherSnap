@@ -23,6 +23,7 @@ sealed class CitySuggestionState {
     object Loading : CitySuggestionState()
     data class Success(val cities: List<CityResult>) : CitySuggestionState()
     object Empty : CitySuggestionState()
+    object Error : CitySuggestionState()
 }
 
 @HiltViewModel
@@ -66,7 +67,7 @@ class WeatherViewModel @Inject constructor(
                     CitySuggestionState.Success(results)
                 }
             } catch (e: Exception) {
-                _citySuggestions.value = CitySuggestionState.Idle
+                _citySuggestions.value = CitySuggestionState.Error
             }
         }
     }
