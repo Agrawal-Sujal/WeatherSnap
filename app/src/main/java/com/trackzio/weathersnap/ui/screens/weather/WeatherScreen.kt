@@ -138,6 +138,15 @@ private fun SearchSection(
                 label = { Text("City", color = TextSecondary) },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
+                trailingIcon = {
+                    if (suggestionsState is CitySuggestionState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = AccentGreen,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = AccentGreen,
                     unfocusedBorderColor = BorderColor,
@@ -164,12 +173,24 @@ private fun SearchSection(
             }
         }
 
-        Text(
-            text = "Enter more than 2 letters to start city suggestions.",
-            color = TextSecondary,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+        // Search feedback text
+        AnimatedVisibility(
+            visible = query.length <= 2 || suggestionsState is CitySuggestionState.Empty,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            val feedbackText = if (query.length <= 2) {
+                "Enter more than 2 letters to start city suggestions."
+            } else {
+                "No cities found. Try adding more letters or check spelling."
+            }
+            Text(
+                text = feedbackText,
+                color = TextSecondary,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
 
         // Suggestions
         AnimatedVisibility(
