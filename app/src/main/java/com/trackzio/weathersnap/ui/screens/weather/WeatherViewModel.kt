@@ -1,6 +1,8 @@
 package com.trackzio.weathersnap.ui.screens.weather
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.trackzio.weathersnap.data.NetworkUnavailableException
 import com.trackzio.weathersnap.data.WeatherRepository
 import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
@@ -18,6 +20,7 @@ sealed class WeatherUiState {
     object Loading : WeatherUiState()
     data class Success(val data: WeatherData) : WeatherUiState()
     data class Error(val message: String) : WeatherUiState()
+    object Offline : WeatherUiState()  // no connectivity — show saved reports fallback
 }
 
 sealed class CitySuggestionState {
@@ -59,7 +62,7 @@ class WeatherViewModel @Inject constructor(
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            delay(300) // Debounce
+            delay(300)
             _citySuggestions.value = CitySuggestionState.Loading
             try {
                 val results = repository.searchCities(query)
@@ -87,6 +90,9 @@ class WeatherViewModel @Inject constructor(
             try {
                 val weather = repository.getWeather(city.latitude, city.longitude, city.displayName)
                 _weatherState.value = WeatherUiState.Success(weather)
+            } catch (e: NetworkUnavailableException) {
+                // No internet — prompt user to view saved reports instead
+                _weatherState.value = WeatherUiState.Offline
             } catch (e: Exception) {
                 _weatherState.value = WeatherUiState.Error(e.message ?: "Failed to fetch weather")
             }

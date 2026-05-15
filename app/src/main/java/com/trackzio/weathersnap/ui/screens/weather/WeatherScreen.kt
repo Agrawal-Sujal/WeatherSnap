@@ -1,4 +1,5 @@
 package com.trackzio.weathersnap.ui.screens.weather
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -32,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -83,12 +86,10 @@ fun WeatherScreen(
             .statusBarsPadding()
             .verticalScroll(scrollState)
     ) {
-        // Header
         WeatherHeader(onReportsClick = rememberDebouncedClick { onNavigateToSavedReports() })
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Search section
         SearchSection(
             query = cityQuery,
             onQueryChange = viewModel::onCityQueryChange,
@@ -99,10 +100,10 @@ fun WeatherScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Weather content
         WeatherContent(
             weatherState = weatherState,
-            onCreateReport = { data -> onNavigateToReport(data) }
+            onCreateReport = { data -> onNavigateToReport(data) },
+            onViewSavedReports = onNavigateToSavedReports
         )
     }
 }
@@ -142,9 +143,7 @@ private fun WeatherHeader(onReportsClick: () -> Unit) {
             Spacer(modifier = Modifier.width(12.dp))
             Button(
                 onClick = onReportsClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2D3D2E)
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D3D2E)),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -171,7 +170,8 @@ private fun SearchSection(
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            val displayQuery = if (suggestionsState is CitySuggestionState.Loading && query.isEmpty()) "---" else query
+            val displayQuery =
+                if (suggestionsState is CitySuggestionState.Loading && query.isEmpty()) "---" else query
             OutlinedTextField(
                 value = displayQuery,
                 onValueChange = onQueryChange,
@@ -204,16 +204,13 @@ private fun SearchSection(
             Button(
                 onClick = onSearch,
                 shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentGreenLight
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentGreenLight),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
             ) {
                 Text("Search", color = DarkBackground, fontWeight = FontWeight.SemiBold)
             }
         }
 
-        // Search feedback text
         AnimatedVisibility(
             visible = query.length <= 2 || suggestionsState is CitySuggestionState.Empty || suggestionsState is CitySuggestionState.Error,
             enter = expandVertically() + fadeIn(),
@@ -232,7 +229,6 @@ private fun SearchSection(
             )
         }
 
-        // Suggestions
         AnimatedVisibility(
             visible = suggestionsState is CitySuggestionState.Success,
             enter = expandVertically() + fadeIn(),
@@ -269,7 +265,8 @@ private fun SuggestionItem(text: String, onClick: () -> Unit) {
 @Composable
 private fun WeatherContent(
     weatherState: WeatherUiState,
-    onCreateReport: (WeatherData) -> Unit
+    onCreateReport: (WeatherData) -> Unit,
+    onViewSavedReports: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -285,7 +282,9 @@ private fun WeatherContent(
                 data = weatherState.data,
                 onCreateReport = { onCreateReport(weatherState.data) }
             )
+
             is WeatherUiState.Error -> ErrorState(message = weatherState.message)
+            is WeatherUiState.Offline -> OfflineState(onViewSavedReports = onViewSavedReports)
         }
     }
 }
@@ -312,7 +311,12 @@ private fun EmptyWeatherState() {
             )
         }
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("No weather loaded", color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Text(
+                "No weather loaded",
+                color = TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "Enter more than 2 letters, choose a city, then search.",
@@ -326,7 +330,6 @@ private fun EmptyWeatherState() {
 @Composable
 private fun LoadingState() {
     Column(modifier = Modifier.padding(16.dp)) {
-        // City Name and Condition Shimmer
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -357,11 +360,11 @@ private fun LoadingState() {
                     .shimmer()
             )
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Stat Cards Shimmer
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             repeat(3) {
                 Box(
                     modifier = Modifier
@@ -372,10 +375,7 @@ private fun LoadingState() {
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Readiness Bar Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -383,10 +383,7 @@ private fun LoadingState() {
                 .clip(RoundedCornerShape(8.dp))
                 .shimmer()
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Button Shimmer
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -416,9 +413,48 @@ private fun ErrorState(message: String) {
         Text(
             text = "Check your internet connection or try again later.",
             color = Color(0xFFFF6B6B),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
             fontSize = 14.sp
         )
+    }
+}
+
+// Offline fallback — shown when IOException is caught (no connectivity)
+@Composable
+private fun OfflineState(onViewSavedReports: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "You're offline",
+            color = TextPrimary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "No internet connection. You can still browse your previously saved reports.",
+            color = TextSecondary,
+            textAlign = TextAlign.Center,
+            fontSize = 13.sp
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = onViewSavedReports,
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentGreen),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentGreenLight)
+        ) {
+            Text(
+                "View Saved Reports",
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
     }
 }
 
@@ -438,11 +474,7 @@ private fun WeatherSuccessState(data: WeatherData, onCreateReport: () -> Unit) {
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = data.condition,
-                    color = TextSecondary,
-                    fontSize = 13.sp
-                )
+                Text(text = data.condition, color = TextSecondary, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Box(
@@ -471,25 +503,9 @@ private fun WeatherSuccessState(data: WeatherData, onCreateReport: () -> Unit) {
             val itemModifier = Modifier
                 .weight(1f, fill = false)
                 .widthIn(min = 100.dp)
-
-            WeatherStatCard(
-                label = "Humidity",
-                value = "${data.humidity}%",
-                valueColor = TealAccent,
-                modifier = itemModifier
-            )
-            WeatherStatCard(
-                label = "Wind",
-                value = "${data.windSpeed} m/s",
-                valueColor = BlueAccent,
-                modifier = itemModifier
-            )
-            WeatherStatCard(
-                label = "Pressure",
-                value = "${data.pressure}",
-                valueColor = OrangeAccent,
-                modifier = itemModifier
-            )
+            WeatherStatCard("Humidity", "${data.humidity}%", TealAccent, itemModifier)
+            WeatherStatCard("Wind", "${data.windSpeed} m/s", BlueAccent, itemModifier)
+            WeatherStatCard("Pressure", "${data.pressure}", OrangeAccent, itemModifier)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -527,9 +543,7 @@ private fun WeatherSuccessState(data: WeatherData, onCreateReport: () -> Unit) {
             onClick = rememberDebouncedClick { onCreateReport() },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentGreenLight
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = AccentGreenLight)
         ) {
             Text(
                 "Create Report",

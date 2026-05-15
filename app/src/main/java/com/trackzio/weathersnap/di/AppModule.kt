@@ -1,6 +1,8 @@
 package com.trackzio.weathersnap.di
+
 import android.content.Context
 import androidx.room.Room
+import com.trackzio.weathersnap.BuildConfig
 import com.trackzio.weathersnap.data.local.CityCacheDao
 import com.trackzio.weathersnap.data.local.WeatherReportDao
 import com.trackzio.weathersnap.data.local.WeatherSnapDatabase
@@ -25,12 +27,14 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+        val builder = OkHttpClient.Builder()
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            builder.addInterceptor(logging)
         }
-        return OkHttpClient.Builder()
-            .addInterceptor(logging)
-            .build()
+        return builder.build()
     }
 
     @Provides
