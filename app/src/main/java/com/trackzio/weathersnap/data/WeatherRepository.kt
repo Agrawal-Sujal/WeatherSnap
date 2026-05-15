@@ -1,4 +1,5 @@
 package com.trackzio.weathersnap.data
+
 import com.trackzio.weathersnap.data.local.CityCacheDao
 import com.trackzio.weathersnap.data.local.CityCacheEntity
 import com.trackzio.weathersnap.data.local.WeatherReportDao
@@ -8,6 +9,7 @@ import com.trackzio.weathersnap.data.remote.api.WeatherApi
 import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
 import kotlinx.coroutines.flow.Flow
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,16 +22,15 @@ class WeatherRepository @Inject constructor(
 ) {
     suspend fun searchCities(query: String): List<CityResult> {
         val cacheKey = query.lowercase().trim()
-        
+
         // 1. Check persistent cache
         cityCacheDao.getCache(cacheKey)?.let {
-            // Optional: Check if cache is older than e.g. 24 hours
             if (System.currentTimeMillis() - it.timestamp < 24 * 60 * 60 * 1000) {
                 return it.cities
             }
         }
 
-        // 2. Fetch from API if not in cache or expired
+        // 2. Fetch from API
         val response = try {
             geocodingApi.searchCities(query)
         } catch (e: Exception) {
@@ -58,17 +59,27 @@ class WeatherRepository @Inject constructor(
         return results
     }
 
+    /**
+     * Fetches weather from the network.
+     * Throws [NetworkUnavailableException] when the device is offline so the
+     * ViewModel can show the offline-fallback state instead of a generic error.
+     */
     suspend fun getWeather(latitude: Double, longitude: Double, cityName: String): WeatherData {
-        val response = weatherApi.getWeather(latitude, longitude)
-        val current = response.current
-        return WeatherData(
-            cityName = cityName,
-            temperature = current.temperature,
-            condition = weatherCodeToCondition(current.weatherCode),
-            humidity = current.humidity,
-            windSpeed = current.windSpeed,
-            pressure = current.pressure.toInt()
-        )
+        try {
+            val response = weatherApi.getWeather(latitude, longitude)
+            val current = response.current
+            return WeatherData(
+                cityName = cityName,
+                temperature = current.temperature,
+                condition = weatherCodeToCondition(current.weatherCode),
+                humidity = current.humidity,
+                windSpeed = current.windSpeed,
+                pressure = current.pressure.toInt()
+            )
+        } catch (e: IOException) {
+            // No connectivity or socket timeout — signal offline state
+            throw NetworkUnavailableException()
+        }
     }
 
     fun getAllReports(): Flow<List<WeatherReportEntity>> = reportDao.getAllReports()
@@ -91,3 +102,5 @@ class WeatherRepository @Inject constructor(
         else -> "Unknown"
     }
 }
+
+class NetworkUnavailableException : Exception("No internet connection")
