@@ -56,12 +56,15 @@ import com.trackzio.weathersnap.domain.model.WeatherData
 import com.trackzio.weathersnap.ui.theme.AccentGreen
 import com.trackzio.weathersnap.ui.theme.AccentGreenLight
 import com.trackzio.weathersnap.ui.theme.BlueAccent
+import com.trackzio.weathersnap.ui.theme.BlueAccentCard
 import com.trackzio.weathersnap.ui.theme.BorderColor
 import com.trackzio.weathersnap.ui.theme.CardDark
 import com.trackzio.weathersnap.ui.theme.DarkBackground
 import com.trackzio.weathersnap.ui.theme.OrangeAccent
+import com.trackzio.weathersnap.ui.theme.OrangeAccentCard
 import com.trackzio.weathersnap.ui.theme.SurfaceDark
 import com.trackzio.weathersnap.ui.theme.TealAccent
+import com.trackzio.weathersnap.ui.theme.TealAccentCard
 import com.trackzio.weathersnap.ui.theme.TextPrimary
 import com.trackzio.weathersnap.ui.theme.TextSecondary
 import com.trackzio.weathersnap.ui.theme.shimmer
@@ -496,16 +499,32 @@ private fun WeatherSuccessState(data: WeatherData, onCreateReport: () -> Unit) {
 
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalArrangement = Arrangement.spacedBy(8.dp),
             maxItemsInEachRow = 3
         ) {
             val itemModifier = Modifier
                 .weight(1f, fill = false)
                 .widthIn(min = 100.dp)
-            WeatherStatCard("Humidity", "${data.humidity}%", TealAccent, itemModifier)
-            WeatherStatCard("Wind", "${data.windSpeed} m/s", BlueAccent, itemModifier)
-            WeatherStatCard("Pressure", "${data.pressure}", OrangeAccent, itemModifier)
+//                .padding(end = 4.dp)
+            WeatherStatCard(
+                "Humidity",
+                "${data.humidity}%",
+                TealAccent,
+                TealAccentCard,
+                itemModifier
+            )
+            WeatherStatCard(
+                "Wind",
+                "${data.windSpeed} m/s",
+                BlueAccent,
+                BlueAccentCard,
+                itemModifier
+            )
+            WeatherStatCard(
+                "Pressure", "${data.pressure}", OrangeAccent,
+                OrangeAccentCard, itemModifier
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -560,16 +579,17 @@ private fun WeatherStatCard(
     label: String,
     value: String,
     valueColor: Color,
+    background: Color,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(CardDark)
-            .padding(10.dp)
+            .background(background)
+            .padding(8.dp)
     ) {
-        Text(label, color = TextSecondary, fontSize = 11.sp)
+        Text(label, color = TextPrimary, fontSize = 11.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = valueColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Text(value, color = valueColor, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
     }
 }

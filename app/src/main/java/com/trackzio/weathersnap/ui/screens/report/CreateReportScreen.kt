@@ -1,4 +1,5 @@
 package com.trackzio.weathersnap.ui.screens.report
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -54,12 +55,15 @@ import com.trackzio.weathersnap.ui.screens.weather.SharedWeatherViewModel
 import com.trackzio.weathersnap.ui.theme.AccentGreen
 import com.trackzio.weathersnap.ui.theme.AccentGreenLight
 import com.trackzio.weathersnap.ui.theme.BlueAccent
+import com.trackzio.weathersnap.ui.theme.BlueAccentCard
 import com.trackzio.weathersnap.ui.theme.BorderColor
 import com.trackzio.weathersnap.ui.theme.CardDark
 import com.trackzio.weathersnap.ui.theme.DarkBackground
 import com.trackzio.weathersnap.ui.theme.OrangeAccent
+import com.trackzio.weathersnap.ui.theme.OrangeAccentCard
 import com.trackzio.weathersnap.ui.theme.SurfaceDark
 import com.trackzio.weathersnap.ui.theme.TealAccent
+import com.trackzio.weathersnap.ui.theme.TealAccentCard
 import com.trackzio.weathersnap.ui.theme.TextPrimary
 import com.trackzio.weathersnap.ui.theme.TextSecondary
 import com.trackzio.weathersnap.ui.util.rememberDebouncedClick
@@ -136,9 +140,18 @@ fun CreateReportScreen(
             colors = ButtonDefaults.buttonColors(containerColor = AccentGreenLight)
         ) {
             if (uiState.isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = DarkBackground, strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = DarkBackground,
+                    strokeWidth = 2.dp
+                )
             } else {
-                Text("Save Report", color = DarkBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 4.dp))
+                Text(
+                    "Save Report",
+                    color = DarkBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
         }
 
@@ -153,12 +166,28 @@ private fun ReportHeader(onBack: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Brush.horizontalGradient(colors = listOf(Color(0xFF7AAB7C), Color(0xFFB5C96A))))
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(
+                        Color(0xFF7AAB7C),
+                        Color(0xFFB5C96A)
+                    )
+                )
+            )
             .padding(16.dp)
     ) {
         Column(modifier = Modifier.align(Alignment.CenterStart)) {
-            Text("Create Report", color = DarkBackground, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Text("Capture, compress, annotate", color = DarkBackground.copy(alpha = 0.7f), fontSize = 12.sp)
+            Text(
+                "Create Report",
+                color = DarkBackground,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "Capture, compress, annotate",
+                color = DarkBackground.copy(alpha = 0.7f),
+                fontSize = 12.sp
+            )
         }
         Button(
             onClick = rememberDebouncedClick { onBack() },
@@ -184,11 +213,21 @@ private fun WeatherSnapshotCard(weather: WeatherData) {
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(weather.cityName, color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    weather.cityName,
+                    color = TextPrimary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
                 Text(weather.condition, color = TextSecondary, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("${weather.temperature.toInt()}°C", color = AccentGreenLight, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                "${weather.temperature.toInt()}°C",
+                color = AccentGreenLight,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
         Spacer(modifier = Modifier.height(12.dp))
         FlowRow(
@@ -197,20 +236,39 @@ private fun WeatherSnapshotCard(weather: WeatherData) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             maxItemsInEachRow = 3
         ) {
-            val itemModifier = Modifier.weight(1f, fill = false).widthIn(min = 90.dp)
-            StatChip("Humidity", "${weather.humidity}%", TealAccent, itemModifier)
-            StatChip("Wind", "${weather.windSpeed} m/s", BlueAccent, itemModifier)
-            StatChip("Pressure", "${weather.pressure}", OrangeAccent, itemModifier)
+            val itemModifier = Modifier
+                .weight(1f, fill = false)
+                .widthIn(min = 90.dp)
+            StatChip("Humidity", "${weather.humidity}%", TealAccent, TealAccentCard, itemModifier)
+            StatChip("Wind", "${weather.windSpeed} m/s", BlueAccent, BlueAccentCard, itemModifier)
+            StatChip(
+                "Pressure",
+                "${weather.pressure}",
+                OrangeAccent,
+                OrangeAccentCard,
+                itemModifier
+            )
         }
     }
 }
 
 @Composable
-private fun StatChip(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.clip(RoundedCornerShape(8.dp)).background(CardDark).padding(10.dp)) {
-        Text(label, color = TextSecondary, fontSize = 11.sp)
+private fun StatChip(
+    label: String,
+    value: String,
+    color: Color,
+    background: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(background)
+            .padding(10.dp)
+    ) {
+        Text(label, color = TextPrimary, fontSize = 11.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = color, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(value, color = color, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
 
@@ -241,7 +299,11 @@ private fun PhotoSection(
         ) {
             AnimatedContent(
                 targetState = imagePath,
-                transitionSpec = { fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400)) },
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(
+                        animationSpec = tween(400)
+                    )
+                },
                 label = "photo_preview"
             ) { path ->
                 if (path != null) {
@@ -273,17 +335,39 @@ private fun PhotoSection(
             )
         }
 
-        AnimatedVisibility(visible = imagePath != null, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+        AnimatedVisibility(
+            visible = imagePath != null,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
             Column {
                 Spacer(modifier = Modifier.height(12.dp))
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     maxItemsInEachRow = 2
                 ) {
-                    SizeChip("Original", "${originalKb} KB", OrangeAccent, Modifier.weight(1f).widthIn(min = 120.dp))
-                    SizeChip("Compressed", "${compressedKb} KB", TealAccent, Modifier.weight(1f).widthIn(min = 120.dp))
+                    SizeChip(
+                        "Original",
+                        "${originalKb} KB",
+                        OrangeAccent,
+                        OrangeAccentCard,
+                        Modifier
+                            .weight(1f)
+                            .widthIn(min = 120.dp)
+                            .padding(end = 8.dp)
+                    )
+
+                    SizeChip(
+                        "Compressed",
+                        "${compressedKb} KB",
+                        TealAccent,
+                        TealAccentCard,
+                        Modifier
+                            .weight(1f)
+                            .widthIn(min = 120.dp)
+                    )
                 }
             }
         }
@@ -291,11 +375,14 @@ private fun PhotoSection(
 }
 
 @Composable
-private fun SizeChip(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.clip(RoundedCornerShape(8.dp)).background(CardDark).padding(12.dp)) {
-        Text(label, color = color, fontSize = 12.sp)
+private fun SizeChip(label: String, value: String, color: Color,background: Color, modifier: Modifier = Modifier) {
+    Column(modifier = modifier
+        .clip(RoundedCornerShape(8.dp))
+        .background(background)
+        .padding(12.dp)) {
+        Text(label, color = TextPrimary, fontSize = 12.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(value, color = color, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
 
@@ -315,7 +402,9 @@ private fun NotesSection(notes: String, onNotesChange: (String) -> Unit) {
             value = notes,
             onValueChange = onNotesChange,
             placeholder = { Text("Notes", color = TextSecondary) },
-            modifier = Modifier.fillMaxWidth().height(120.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = AccentGreen,

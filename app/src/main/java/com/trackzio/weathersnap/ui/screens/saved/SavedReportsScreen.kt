@@ -49,8 +49,10 @@ import com.trackzio.weathersnap.ui.theme.AccentGreen
 import com.trackzio.weathersnap.ui.theme.CardDark
 import com.trackzio.weathersnap.ui.theme.DarkBackground
 import com.trackzio.weathersnap.ui.theme.OrangeAccent
+import com.trackzio.weathersnap.ui.theme.OrangeAccentCard
 import com.trackzio.weathersnap.ui.theme.SurfaceDark
 import com.trackzio.weathersnap.ui.theme.TealAccent
+import com.trackzio.weathersnap.ui.theme.TealAccentCard
 import com.trackzio.weathersnap.ui.theme.TextPrimary
 import com.trackzio.weathersnap.ui.theme.TextSecondary
 import com.trackzio.weathersnap.ui.util.rememberDebouncedClick
@@ -229,8 +231,10 @@ private fun ReportCard(report: WeatherReportEntity) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 maxItemsInEachRow = 2
             ) {
-                SizeInfoChip("Original", "${report.originalSizeKb} KB", OrangeAccent, Modifier.weight(1f).widthIn(min = 120.dp))
-                SizeInfoChip("Compressed", "${report.compressedSizeKb} KB", TealAccent, Modifier.weight(1f).widthIn(min = 120.dp))
+                SizeInfoChip("Original", "${report.originalSizeKb} KB", OrangeAccent,
+                    OrangeAccentCard, Modifier.weight(1f).widthIn(min = 120.dp))
+                SizeInfoChip("Compressed", "${report.compressedSizeKb} KB", TealAccent,
+                    TealAccentCard, Modifier.weight(1f).widthIn(min = 120.dp))
             }
 
             if (report.notes.isNotBlank()) {
@@ -250,15 +254,15 @@ private fun ReportCard(report: WeatherReportEntity) {
 }
 
 @Composable
-private fun SizeInfoChip(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
+private fun SizeInfoChip(label: String, value: String, color: Color,background:Color, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(CardDark)
+            .background(background)
             .padding(12.dp)
     ) {
-        Text(label, color = color, fontSize = 12.sp)
+        Text(label, color = TextPrimary, fontSize = 12.sp)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(value, color = color, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
