@@ -2,10 +2,10 @@ package com.trackzio.weathersnap.ui.screens.weather
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.trackzio.weathersnap.data.NetworkUnavailableException
-import com.trackzio.weathersnap.data.WeatherRepository
 import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
+import com.trackzio.weathersnap.domain.repository.NetworkUnavailableException
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

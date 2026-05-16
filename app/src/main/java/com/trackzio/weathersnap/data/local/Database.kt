@@ -1,84 +1,19 @@
 package com.trackzio.weathersnap.data.local
-import androidx.room.Dao
+
 import androidx.room.Database
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.PrimaryKey
-import androidx.room.Query
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.trackzio.weathersnap.domain.model.CityResult
-import kotlinx.coroutines.flow.Flow
-
-@Entity(tableName = "weather_reports")
-data class WeatherReportEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val cityName: String,
-    val temperature: Double,
-    val condition: String,
-    val humidity: Int,
-    val windSpeed: Double,
-    val pressure: Int,
-    val imagePath: String,
-    val originalSizeKb: Long,
-    val compressedSizeKb: Long,
-    val notes: String,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-@Dao
-interface WeatherReportDao {
-    @Query("SELECT * FROM weather_reports ORDER BY timestamp DESC")
-    fun getAllReports(): Flow<List<WeatherReportEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertReport(report: WeatherReportEntity): Long
-
-    @Query("DELETE FROM weather_reports WHERE id = :id")
-    suspend fun deleteReport(id: Long)
-}
-
-@Entity(tableName = "city_cache")
-data class CityCacheEntity(
-    @PrimaryKey val query: String,
-    val cities: List<CityResult>,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-@Dao
-interface CityCacheDao {
-    @Query("SELECT * FROM city_cache WHERE `query` = :query")
-    suspend fun getCache(query: String): CityCacheEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCache(cache: CityCacheEntity)
-
-    @Query("DELETE FROM city_cache WHERE timestamp < :expiryTime")
-    suspend fun clearOldCache(expiryTime: Long)
-}
-
-class Converters {
-    private val gson = Gson()
-
-    @TypeConverter
-    fun fromCityResultList(value: List<CityResult>?): String? {
-        return gson.toJson(value)
-    }
-
-    @TypeConverter
-    fun toCityResultList(value: String?): List<CityResult>? {
-        val listType = object : TypeToken<List<CityResult>>() {}.type
-        return gson.fromJson(value, listType)
-    }
-}
+import com.trackzio.weathersnap.data.local.dao.CityCacheDao
+import com.trackzio.weathersnap.data.local.dao.WeatherReportDao
+import com.trackzio.weathersnap.data.local.entity.CityCacheEntity
+import com.trackzio.weathersnap.data.local.entity.WeatherReportEntity
 
 @Database(
-    entities = [WeatherReportEntity::class, CityCacheEntity::class],
-    version = 2,
+    entities = [
+        WeatherReportEntity::class,
+        CityCacheEntity::class
+    ],
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

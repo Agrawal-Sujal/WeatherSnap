@@ -18,20 +18,21 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 // Dark olive/forest green palette matching screenshots
-val DarkBackground = Color(0xFF141B14)
-val SurfaceDark = Color(0xFF252B18)
+val DarkBackground = Color(0xFF1D210B)
+val SurfaceDark = Color(0xFF35352D)
 val CardDark = Color(0xFF35352D)
 val HeaderGreen = Color(0xFF3D5A3E)
-val AccentGreen = Color(0xFFB5C96A)
-val AccentGreenLight = Color(0xFFC1CD7D)
+val AccentGreen = Color(0xFFBFCC7F)
+val White = Color.White
+val AccentGreenLight = Color(0xFFBFCD7E)
 val TealAccent = Color(0xFF4A8B7A)
 val TealAccentCard = Color(0xFF343D33)
 val OrangeAccent = Color(0xFFD4874A)
 val OrangeAccentCard = Color(0xFF40392A)
 val BlueAccent = Color(0xFF5A9DB5)
 val BlueAccentCard = Color(0xFF343B3B)
-val TextPrimary = Color(0xFFE8F0D0)
-val TextSecondary = Color(0xFF9AAA78)
+val TextPrimary = Color.White
+val TextSecondary = Color.White
 val BorderColor = Color(0xFF3A4228)
 
 @Composable
@@ -63,7 +64,7 @@ fun Modifier.shimmer(): Modifier {
 }
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AccentGreen,
+    primary = White,
     onPrimary = DarkBackground,
     primaryContainer = HeaderGreen,
     onPrimaryContainer = TextPrimary,
