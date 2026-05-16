@@ -71,6 +71,32 @@ fun WeatherScreen(
     val weatherState by viewModel.weatherState.collectAsState()
     val citySuggestions by viewModel.citySuggestions.collectAsState()
     val selectedCity by viewModel.selectedCity.collectAsState()
+
+    WeatherScreenContent(
+        cityQuery = cityQuery,
+        weatherState = weatherState,
+        citySuggestions = citySuggestions,
+        onCityQueryChange = viewModel::onCityQueryChange,
+        onSearch = viewModel::fetchWeather,
+        onCitySelected = viewModel::onCitySelected,
+        onNavigateToReport = onNavigateToReport,
+        onNavigateToSavedReports = onNavigateToSavedReports,
+        selectedCity = selectedCity
+    )
+}
+
+@Composable
+fun WeatherScreenContent(
+    cityQuery: String,
+    weatherState: WeatherUiState,
+    citySuggestions: CitySuggestionState,
+    onCityQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onCitySelected: (CityResult) -> Unit,
+    onNavigateToReport: (WeatherData) -> Unit,
+    onNavigateToSavedReports: () -> Unit,
+    selectedCity: CityResult?
+) {
     val scrollState = rememberScrollState()
 
     Column(
@@ -91,10 +117,10 @@ fun WeatherScreen(
 
         SearchSection(
             query = cityQuery,
-            onQueryChange = viewModel::onCityQueryChange,
-            onSearch = rememberDebouncedClick { viewModel.fetchWeather() },
+            onQueryChange = onCityQueryChange,
+            onSearch = rememberDebouncedClick { onSearch() },
             suggestionsState = citySuggestions,
-            onCitySelected = rememberDebouncedClickParam { viewModel.onCitySelected(it) },
+            onCitySelected = rememberDebouncedClickParam { onCitySelected(it) },
             selectedCity = selectedCity
         )
 

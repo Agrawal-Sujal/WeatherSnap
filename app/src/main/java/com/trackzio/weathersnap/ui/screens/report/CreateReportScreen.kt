@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.trackzio.weathersnap.domain.model.WeatherData
 import com.trackzio.weathersnap.ui.components.AppHeader
 import com.trackzio.weathersnap.ui.components.StatCard
 import com.trackzio.weathersnap.ui.components.WeatherCard
@@ -98,6 +99,26 @@ fun CreateReportScreen(
         if (uiState.savedSuccessfully) onReportSaved()
     }
 
+    CreateReportScreenContent(
+        uiState = uiState,
+        weatherData = weatherData,
+        onNavigateBack = onNavigateBack,
+        onNavigateToCamera = onNavigateToCamera,
+        onNotesChange = reportViewModel::onNotesChange,
+        onSaveReport = reportViewModel::saveReport
+    )
+}
+
+@Composable
+fun CreateReportScreenContent(
+    uiState: ReportUiState,
+    weatherData: WeatherData?,
+    onNavigateBack: () -> Unit,
+    onNavigateToCamera: () -> Unit,
+    onNotesChange: (String) -> Unit,
+    onSaveReport: () -> Unit
+) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -137,13 +158,13 @@ fun CreateReportScreen(
 
         NotesSection(
             notes = uiState.notes,
-            onNotesChange = reportViewModel::onNotesChange
+            onNotesChange = onNotesChange
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = rememberDebouncedClick { reportViewModel.saveReport() },
+            onClick = rememberDebouncedClick { onSaveReport() },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
@@ -193,9 +214,11 @@ private fun PhotoSection(
                 .heightIn(min = 150.dp, max = 300.dp)
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
-                .background( Brush.horizontalGradient(
-                    colors = listOf(Color(0xFF444638), Color(0xFF3E4416))
-                )),
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(Color(0xFF444638), Color(0xFF3E4416))
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
             AnimatedContent(

@@ -71,6 +71,17 @@ fun SavedReportsScreen(
     LaunchedEffect(Unit) {
         viewModel.loadReports()
     }
+    SavedReportsScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@Composable
+fun SavedReportsScreenContent(
+    uiState: SavedReportsUiState,
+    onNavigateBack: () -> Unit
+) {
 
     Box(
         modifier = Modifier
@@ -94,6 +105,7 @@ fun SavedReportsScreen(
                         CircularProgressIndicator(color = AccentGreen)
                     }
                 }
+
                 is SavedReportsUiState.Success -> {
                     AppHeader(
                         title = "Saved Reports",
@@ -164,7 +176,12 @@ private fun ReportCard(report: WeatherReportEntity) {
                 verticalAlignment = Alignment.Top
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(report.cityName, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        report.cityName,
+                        color = TextPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(report.condition, color = TextSecondary, fontSize = 13.sp)
                     Text(formattedDate, color = TextSecondary, fontSize = 11.sp)
                 }
@@ -197,14 +214,18 @@ private fun ReportCard(report: WeatherReportEntity) {
                     value = "${report.originalSizeKb} KB",
                     valueColor = OrangeAccent,
                     backgroundColor = OrangeAccentCard,
-                    modifier = Modifier.weight(1f).widthIn(min = 120.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .widthIn(min = 120.dp)
                 )
                 StatCard(
                     label = "Compressed",
                     value = "${report.compressedSizeKb} KB",
                     valueColor = TealAccent,
                     backgroundColor = TealAccentCard,
-                    modifier = Modifier.weight(1f).widthIn(min = 120.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .widthIn(min = 120.dp)
                 )
             }
 
