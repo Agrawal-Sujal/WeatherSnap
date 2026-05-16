@@ -1,12 +1,14 @@
 package com.trackzio.weathersnap.data
 
-import com.trackzio.weathersnap.data.local.CityCacheDao
-import com.trackzio.weathersnap.data.local.CityCacheEntity
-import com.trackzio.weathersnap.data.local.WeatherReportDao
+import com.trackzio.weathersnap.data.local.dao.CityCacheDao
+import com.trackzio.weathersnap.data.local.dao.WeatherReportDao
 import com.trackzio.weathersnap.data.remote.api.GeocodingApi
 import com.trackzio.weathersnap.data.remote.api.WeatherApi
 import com.trackzio.weathersnap.data.remote.model.GeocodingResponse
 import com.trackzio.weathersnap.data.remote.model.GeocodingResult
+import com.trackzio.weathersnap.data.local.entity.CityCacheEntity
+import com.trackzio.weathersnap.data.repository.WeatherRepositoryImpl
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -25,7 +27,7 @@ class WeatherRepositoryTest {
 
     @Before
     fun setup() {
-        repository = WeatherRepository(geocodingApi, weatherApi, reportDao, cityCacheDao)
+        repository = WeatherRepositoryImpl(geocodingApi, weatherApi, reportDao, cityCacheDao)
     }
 
     @Test

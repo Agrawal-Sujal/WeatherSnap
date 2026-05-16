@@ -82,18 +82,6 @@ fun SavedReportsScreenContent(
     uiState: SavedReportsUiState,
     onNavigateBack: () -> Unit
 ) {
-
-    SavedReportsScreenContent(
-        uiState = uiState,
-        onNavigateBack = onNavigateBack
-    )
-}
-
-@Composable
-fun SavedReportsScreenContent(
-    uiState: SavedReportsUiState,
-    onNavigateBack: () -> Unit
-) {
     Box(
         modifier = Modifier
             .fillMaxSize()

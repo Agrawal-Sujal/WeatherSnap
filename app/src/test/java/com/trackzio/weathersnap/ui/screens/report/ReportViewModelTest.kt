@@ -3,7 +3,7 @@ package com.trackzio.weathersnap.ui.screens.report
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.trackzio.weathersnap.data.WeatherRepository
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import com.trackzio.weathersnap.domain.model.WeatherData
 import com.trackzio.weathersnap.util.ImageCompressor
 import io.mockk.coEvery

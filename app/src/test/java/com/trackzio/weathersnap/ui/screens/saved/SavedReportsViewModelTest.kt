@@ -1,8 +1,8 @@
 package com.trackzio.weathersnap.ui.screens.saved
 
 import app.cash.turbine.test
-import com.trackzio.weathersnap.data.WeatherRepository
-import com.trackzio.weathersnap.data.local.WeatherReportEntity
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
+import com.trackzio.weathersnap.data.local.entity.WeatherReportEntity
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

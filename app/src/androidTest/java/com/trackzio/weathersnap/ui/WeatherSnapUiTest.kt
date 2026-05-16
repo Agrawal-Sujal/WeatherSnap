@@ -5,6 +5,7 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
 import com.trackzio.weathersnap.ui.screens.report.CreateReportScreenContent
 import com.trackzio.weathersnap.ui.screens.report.ReportUiState
@@ -32,7 +33,8 @@ class WeatherSnapUiTest {
                 onSearch = {},
                 onCitySelected = {},
                 onNavigateToReport = {},
-                onNavigateToSavedReports = {}
+                onNavigateToSavedReports = {},
+                selectedCity = null
             )
         }
 
@@ -53,7 +55,8 @@ class WeatherSnapUiTest {
                 onSearch = {},
                 onCitySelected = {},
                 onNavigateToReport = {},
-                onNavigateToSavedReports = {}
+                onNavigateToSavedReports = {},
+                selectedCity = null
             )
         }
 
@@ -99,6 +102,7 @@ class WeatherSnapUiTest {
     @Test
     fun weatherScreen_searchTriggersCallback() {
         var searchClicked = false
+        val city = CityResult("London", "UK", 51.5, -0.12)
         composeTestRule.setContent {
             WeatherScreenContent(
                 cityQuery = "London",
@@ -108,7 +112,8 @@ class WeatherSnapUiTest {
                 onSearch = { searchClicked = true },
                 onCitySelected = {},
                 onNavigateToReport = {},
-                onNavigateToSavedReports = {}
+                onNavigateToSavedReports = {},
+                selectedCity = city
             )
         }
 

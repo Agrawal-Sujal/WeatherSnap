@@ -1,7 +1,7 @@
 package com.trackzio.weathersnap.ui.screens.weather
 
 import app.cash.turbine.test
-import com.trackzio.weathersnap.data.WeatherRepository
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
 import io.mockk.coEvery
