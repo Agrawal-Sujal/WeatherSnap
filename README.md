@@ -56,22 +56,29 @@ app/src/main/java/com/trackzio/weathersnap/
 │
 ├── data/
 │   ├── local/
-│   │   └── Database.kt              # Room DB, DAOs, TypeConverters, entities
+│   │   ├── dao/                     # Room DAOs
+│   │   ├── entity/                  # Room Entities
+│   │   ├── Database.kt              # Room Database configuration
+│   │   └── Converters.kt            # Type converters for Room
 │   ├── remote/
 │   │   ├── api/
 │   │   │   └── ApiInterfaces.kt     # Retrofit interfaces for geocoding + weather
 │   │   └── model/
 │   │       └── ApiModels.kt         # API response data classes
-│   └── WeatherRepository.kt         # Single source of truth; city cache logic + offline handling
+│   └── repository/
+│       └── WeatherRepositoryImpl.kt # Repository implementation
 │
 ├── di/
-│   └── AppModule.kt                 # Hilt module — OkHttp, Retrofit (two instances), Room, DAOs
+│   └── AppModule.kt                 # Hilt module — OkHttp, Retrofit, Room, DAOs
 │
 ├── domain/
-│   └── model/
-│       └── Models.kt                # Clean domain models (CityResult, WeatherData)
+│   ├── model/
+│   │   └── Models.kt                # Clean domain models (CityResult, WeatherData)
+│   └── repository/
+│       └── WeatherRepository.kt     # Repository interface
 │
 ├── ui/
+│   ├── components/                  # Reusable UI components (WeatherCard, StatCard, etc.)
 │   ├── navigation/
 │   │   └── NavGraph.kt              # Type-safe nav graph with animated transitions
 │   ├── screens/
@@ -98,7 +105,7 @@ app/src/main/java/com/trackzio/weathersnap/
 │   └── ImageCompression.kt          # Bitmap scale + JPEG re-encode
 │
 ├── MainActivity.kt
-└── WeatherSnapApplication.kt
+└── Weathersnapapplication.kt
 ```
 
 ---
@@ -116,7 +123,7 @@ app/src/main/java/com/trackzio/weathersnap/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/weathersnap.git
+   git clone https://github.com/Agrawal-Sujal/WeatherSnap.git
    cd weathersnap
    ```
 
@@ -210,7 +217,6 @@ fun initWeatherData(data: WeatherData) {
 | `SavedStateHandle` for draft | Survives process death; no additional Room table or shared prefs needed | Primitives only — `WeatherData` is passed through `SharedWeatherViewModel` rather than serialised into `SavedStateHandle` |
 | Activity-scoped `SharedWeatherViewModel` | Survives navigation to camera and back without re-fetching | ViewModel lives as long as the Activity; cleared manually on save |
 | Delete old draft image on new capture | No indefinitely leaking temp files | If the delete fails (e.g. file already gone), the error is silently swallowed — acceptable since the new file is already in place |
-| `fallbackToDestructiveMigration()` in Room | Simplifies schema changes during development | Not suitable for production where data must be migrated gracefully |
 
 ---
 
@@ -262,6 +268,4 @@ Run instrumented tests (requires a connected device or emulator):
 
 ## Known Tradeoffs
 
-- `fallbackToDestructiveMigration()` is used in the Room builder. This is intentional for the scope of this assignment; a production app would provide proper `Migration` objects.
-- The dark olive theme is hardcoded (`isSystemInDarkTheme()` is respected in the API but the colour scheme is always dark to match the design reference).
-- CameraX requires `CAMERA` permission to be granted at runtime. The app requests it on the camera screen; behaviour on permanent denial is a no-op close.
+- The dark theme is hardcoded (`isSystemInDarkTheme()` is respected in the API but the color scheme is always dark to match the design reference).
