@@ -1,35 +1,39 @@
-package com.trackzio.weathersnap.data
-import com.trackzio.weathersnap.data.local.CityCacheDao
-import com.trackzio.weathersnap.data.local.CityCacheEntity
-import com.trackzio.weathersnap.data.local.WeatherReportDao
-import com.trackzio.weathersnap.data.local.WeatherReportEntity
+package com.trackzio.weathersnap.data.repository
+
+import com.trackzio.weathersnap.data.local.dao.CityCacheDao
+import com.trackzio.weathersnap.data.local.dao.WeatherReportDao
+import com.trackzio.weathersnap.data.local.entity.CityCacheEntity
+import com.trackzio.weathersnap.data.local.entity.WeatherReportEntity
 import com.trackzio.weathersnap.data.remote.api.GeocodingApi
 import com.trackzio.weathersnap.data.remote.api.WeatherApi
 import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
+import com.trackzio.weathersnap.domain.repository.NetworkUnavailableException
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import kotlinx.coroutines.flow.Flow
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class WeatherRepository @Inject constructor(
+class WeatherRepositoryImpl @Inject constructor(
     private val geocodingApi: GeocodingApi,
     private val weatherApi: WeatherApi,
     private val reportDao: WeatherReportDao,
     private val cityCacheDao: CityCacheDao
-) {
-    suspend fun searchCities(query: String): List<CityResult> {
+) : WeatherRepository {
+
+    override suspend fun searchCities(query: String): List<CityResult> {
         val cacheKey = query.lowercase().trim()
-        
+
         // 1. Check persistent cache
         cityCacheDao.getCache(cacheKey)?.let {
-            // Optional: Check if cache is older than e.g. 24 hours
             if (System.currentTimeMillis() - it.timestamp < 24 * 60 * 60 * 1000) {
                 return it.cities
             }
         }
 
-        // 2. Fetch from API if not in cache or expired
+        // 2. Fetch from API
         val response = try {
             geocodingApi.searchCities(query)
         } catch (e: Exception) {
@@ -58,22 +62,26 @@ class WeatherRepository @Inject constructor(
         return results
     }
 
-    suspend fun getWeather(latitude: Double, longitude: Double, cityName: String): WeatherData {
-        val response = weatherApi.getWeather(latitude, longitude)
-        val current = response.current
-        return WeatherData(
-            cityName = cityName,
-            temperature = current.temperature,
-            condition = weatherCodeToCondition(current.weatherCode),
-            humidity = current.humidity,
-            windSpeed = current.windSpeed,
-            pressure = current.pressure.toInt()
-        )
+    override suspend fun getWeather(latitude: Double, longitude: Double, cityName: String): WeatherData {
+        try {
+            val response = weatherApi.getWeather(latitude, longitude)
+            val current = response.current
+            return WeatherData(
+                cityName = cityName,
+                temperature = current.temperature,
+                condition = weatherCodeToCondition(current.weatherCode),
+                humidity = current.humidity,
+                windSpeed = current.windSpeed,
+                pressure = current.pressure.toInt()
+            )
+        } catch (e: IOException) {
+            throw NetworkUnavailableException()
+        }
     }
 
-    fun getAllReports(): Flow<List<WeatherReportEntity>> = reportDao.getAllReports()
+    override fun getAllReports(): Flow<List<WeatherReportEntity>> = reportDao.getAllReports()
 
-    suspend fun saveReport(report: WeatherReportEntity): Long =
+    override suspend fun saveReport(report: WeatherReportEntity): Long =
         reportDao.insertReport(report)
 
     private fun weatherCodeToCondition(code: Int): String = when (code) {

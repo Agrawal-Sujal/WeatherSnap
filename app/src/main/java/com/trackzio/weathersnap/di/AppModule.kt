@@ -1,11 +1,16 @@
 package com.trackzio.weathersnap.di
+
 import android.content.Context
 import androidx.room.Room
-import com.trackzio.weathersnap.data.local.CityCacheDao
-import com.trackzio.weathersnap.data.local.WeatherReportDao
+import com.trackzio.weathersnap.BuildConfig
 import com.trackzio.weathersnap.data.local.WeatherSnapDatabase
+import com.trackzio.weathersnap.data.local.dao.CityCacheDao
+import com.trackzio.weathersnap.data.local.dao.WeatherReportDao
+import com.trackzio.weathersnap.data.repository.WeatherRepositoryImpl
 import com.trackzio.weathersnap.data.remote.api.GeocodingApi
 import com.trackzio.weathersnap.data.remote.api.WeatherApi
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,12 +30,14 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+        val builder = OkHttpClient.Builder()
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            builder.addInterceptor(logging)
         }
-        return OkHttpClient.Builder()
-            .addInterceptor(logging)
-            .build()
+        return builder.build()
     }
 
     @Provides
@@ -79,4 +86,14 @@ object AppModule {
     @Singleton
     fun provideCityCacheDao(database: WeatherSnapDatabase): CityCacheDao =
         database.cityCacheDao()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepositoryModule {
+    @Binds
+    @Singleton
+    abstract fun bindWeatherRepository(
+        weatherRepositoryImpl: WeatherRepositoryImpl
+    ): WeatherRepository
 }
