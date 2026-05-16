@@ -2,8 +2,8 @@ package com.trackzio.weathersnap.ui.screens.saved
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.trackzio.weathersnap.data.WeatherRepository
-import com.trackzio.weathersnap.data.local.WeatherReportEntity
+import com.trackzio.weathersnap.data.local.entity.WeatherReportEntity
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

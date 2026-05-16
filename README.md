@@ -1,67 +1,271 @@
 # WeatherSnap
 
-A polished Android app to search live weather, capture photo evidence, compress images, and save weather reports locally.
+A polished Android weather app that lets you search live weather for any city, capture a photo with a custom camera, compress it, add field notes, and save weather reports locally — all without an API key.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Setup & Run](#setup--run)
+- [App Flow](#app-flow)
+- [Developer Judgment Challenge](#developer-judgment-challenge)
+- [Testing](#testing)
+- [Architecture Notes](#architecture-notes)
+- [Known Tradeoffs](#known-tradeoffs)
+
+---
+
+## Features
+
+- **City autocomplete** — suggestions appear after 2 characters with 300ms debounce; results are cached in Room for 24 hours to avoid redundant API calls
+- **Live weather** — fetches from Open-Meteo (no API key required); displays temperature, condition, humidity, wind speed, and pressure
+- **Custom CameraX screen** — full live preview built with CameraX; no device camera intent used
+- **Image compression** — captured images are scaled to a max of 1280px and re-encoded at 30% JPEG quality; original and compressed sizes are both displayed
+- **Room persistence** — reports are saved to a local Room database on a background coroutine; the saved reports list is driven by a `Flow` that updates reactively
+- **Offline fallback** — when the device has no connectivity, the app shows an `Offline` state and prompts the user to view their saved reports instead of showing a generic error
+- **Debug-only network logging** — `HttpLoggingInterceptor` is added to OkHttp only when `BuildConfig.DEBUG` is true
+- **Draft recovery** — in-progress report state survives rotation, backgrounding, and process death (see [Developer Judgment Challenge](#developer-judgment-challenge))
+
+---
 
 ## Tech Stack
 
-- **Kotlin** + **Jetpack Compose** (Material 3)
-- **MVVM** with `ViewModel` + `StateFlow` + `Coroutines`
-- **Hilt** for dependency injection
-- **Navigation Compose** with animated transitions
-- **Retrofit** + **Gson** + **OkHttp** logging interceptor
-- **Room Database** for local persistence
-- **CameraX** for custom camera implementation
-- **Coil** for image loading
+| Layer | Library |
+|---|---|
+| Language | Kotlin |
+| UI | Jetpack Compose + Material 3 |
+| Architecture | MVVM (ViewModel + StateFlow) |
+| DI | Hilt |
+| Navigation | Navigation Compose |
+| Networking | Retrofit + Gson + OkHttp |
+| Local DB | Room |
+| Camera | CameraX |
+| Async | Coroutines |
+
+**API:** [Open-Meteo](https://open-meteo.com/) — no API key required.
+
+---
+
+## Project Structure
+
+```
+app/src/main/java/com/trackzio/weathersnap/
+│
+├── data/
+│   ├── local/
+│   │   ├── dao/                     # Room DAOs
+│   │   ├── entity/                  # Room Entities
+│   │   ├── Database.kt              # Room Database configuration
+│   │   └── Converters.kt            # Type converters for Room
+│   ├── remote/
+│   │   ├── api/
+│   │   │   └── ApiInterfaces.kt     # Retrofit interfaces for geocoding + weather
+│   │   └── model/
+│   │       └── ApiModels.kt         # API response data classes
+│   └── repository/
+│       └── WeatherRepositoryImpl.kt # Repository implementation
+│
+├── di/
+│   └── AppModule.kt                 # Hilt module — OkHttp, Retrofit, Room, DAOs
+│
+├── domain/
+│   ├── model/
+│   │   └── Models.kt                # Clean domain models (CityResult, WeatherData)
+│   └── repository/
+│       └── WeatherRepository.kt     # Repository interface
+│
+├── ui/
+│   ├── components/                  # Reusable UI components (WeatherCard, StatCard, etc.)
+│   ├── navigation/
+│   │   └── NavGraph.kt              # Type-safe nav graph with animated transitions
+│   ├── screens/
+│   │   ├── weather/
+│   │   │   ├── WeatherScreen.kt
+│   │   │   ├── WeatherViewModel.kt
+│   │   │   └── SharedWeatherViewModel.kt
+│   │   ├── report/
+│   │   │   ├── CreateReportScreen.kt
+│   │   │   └── ReportViewModel.kt
+│   │   ├── camera/
+│   │   │   └── CameraScreen.kt
+│   │   └── saved/
+│   │       ├── SavedReportsScreen.kt
+│   │       └── SavedReportsViewModel.kt
+│   ├── theme/
+│   │   ├── Color.kt
+│   │   ├── Theme.kt                 # Dark olive/forest palette + shimmer modifier
+│   │   └── Type.kt
+│   └── util/
+│       └── ClickUtils.kt            # Debounced click helpers
+│
+├── util/
+│   └── ImageCompression.kt          # Bitmap scale + JPEG re-encode
+│
+├── MainActivity.kt
+└── Weathersnapapplication.kt
+```
+
+---
 
 ## Setup & Run
 
 ### Prerequisites
+
 - Android Studio Hedgehog (2023.1.1) or newer
-- Android SDK 35
-- Minimum SDK: 24 (Android 7.0)
+- Android SDK 34
+- A physical device or emulator running API 24+
+- CameraX requires a physical device or an emulator with camera support enabled
 
 ### Steps
-1. Clone or unzip the repository
-2. Open in Android Studio
-3. Let Gradle sync complete
-4. Run on a physical device (camera requires real hardware) or emulator with camera support
-5. Grant camera permission when prompted
 
-### API
-Uses [Open-Meteo](https://open-meteo.com/) — no API key required.
-- Geocoding: `https://geocoding-api.open-meteo.com/v1/search`
-- Weather: `https://api.open-meteo.com/v1/forecast`
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Agrawal-Sujal/WeatherSnap.git
+   cd weathersnap
+   ```
+
+2. Open the project in Android Studio.
+
+3. Let Gradle sync complete (all dependencies are pulled from Maven Central and Google — no local setup needed).
+
+4. Run the app on a physical device or a camera-capable emulator:
+   ```
+   Run → Run 'app'
+   ```
+   or via CLI:
+   ```bash
+   ./gradlew installDebug
+   ```
+
+No API keys, no `.env` files, no extra configuration required.
+
+---
 
 ## App Flow
 
-1. **Weather Screen** — Type 3+ letters to get city autocomplete suggestions (debounced, cached). Select a city, tap Search to load weather. Tap "Create Report" when weather is shown.
-2. **Create Report Screen** — Shows the locked weather snapshot. Tap "Capture Photo" to open the custom camera.
-3. **Custom Camera Screen** — Live CameraX preview. Tap Capture to take photo, Close to cancel.
-4. **Back on Report Screen** — Photo preview appears with animated fade-in. Original and compressed image sizes are shown. Add optional field notes. Tap "Save Report".
-5. **Saved Reports Screen** — All reports displayed as cards with image, weather details, timestamps, file sizes, and notes.
+### 1. Weather Screen
+- Type a city name; suggestions appear after **more than 2 characters**.
+- Suggestions are debounced (300ms) and cached in Room for 24 hours — the same query will never hit the network twice within that window.
+- Select a suggestion, then tap **Search** to fetch current weather (temperature, condition, humidity, wind speed, pressure).
+- States shown: loading (shimmer), success, empty, error, and offline.
+- On success, a **Create Report** button appears. A **Reports** button is always available in the top bar.
 
-## Developer Judgment Challenge — Lifecycle/Data-Loss Protection
+### 2. Create Report Screen
+- Shows the selected weather snapshot (frozen at selection time — never re-fetched).
+- Tap **Capture Photo** to open the custom camera.
+- After capture, a compressed image preview is shown with original and compressed sizes.
+- Enter optional field notes.
+- Tap **Save Report** to persist to Room and navigate to the Saved Reports screen.
+
+### 3. Custom Camera Screen
+- Built with **CameraX** — no device camera intent is used.
+- Shows a full live preview, a **Capture** button, and a **Close** button.
+- On capture, the raw image file path is returned to the report screen via `NavBackStackEntry.savedStateHandle`.
+- The report screen's `ReportViewModel` then compresses the image and cleans up the raw file.
+
+### 4. Saved Reports Screen
+- Displays all reports from Room, ordered by timestamp descending.
+- Each card shows: captured image, city + weather details (as they were at report creation), original image size, compressed image size, notes, and saved timestamp.
+- Shows an animated empty state when no reports exist.
+
+---
+
+## Developer Judgment Challenge
 
 ### Problem
-The create-report flow spans multiple screens and can be interrupted by device rotation, backgrounding, or process death. A naive implementation would lose: the weather snapshot, the captured photo path, and the typed notes.
+If the user selects a city, opens Create Report, captures a photo, enters notes, and then rotates the device or the process is killed before saving — the in-progress report would normally be lost, or a duplicate could be created on re-entry.
 
-### Solution Approach
+### Approach: `SavedStateHandle` as the draft store
 
-**Two-layer protection:**
+`ReportViewModel` uses `SavedStateHandle` to persist the draft state across all lifecycle events, including process death:
 
-**Layer 1 — `SharedWeatherViewModel` (activity-scoped):**
-The weather data selected on the Weather Screen is immediately stored in a Hilt-provided `SharedWeatherViewModel` that lives at the Activity scope. This VM survives configuration changes (rotation). The `ReportViewModel` calls `initWeatherData()` which is guarded by a null-check — it only accepts the weather once, so re-composition or re-navigation never silently replaces the snapshot with a freshly-fetched value.
+```kotlin
+// On init — state is hydrated from SavedStateHandle automatically
+private val _uiState = MutableStateFlow(ReportUiState(
+    capturedImagePath = savedStateHandle["draft_image_path"],
+    originalSizeKb    = savedStateHandle["draft_original_kb"] ?: 0L,
+    compressedSizeKb  = savedStateHandle["draft_compressed_kb"] ?: 0L,
+    notes             = savedStateHandle["draft_notes"] ?: ""
+))
 
-**Layer 2 — `SavedStateHandle` in `ReportViewModel`:**
-The captured image file path, original/compressed sizes, and notes are persisted in `SavedStateHandle` as soon as they're set. `SavedStateHandle` is backed by the system-managed state bundle that survives process death (as long as the task remains in the recents). On the next cold start (same task), the ViewModel re-reads these values and restores the draft — no duplicate reports are created because the report is only written to Room on explicit Save.
+// On every change — state is written back immediately
+savedStateHandle["draft_image_path"] = result.compressedFile.absolutePath
+savedStateHandle["draft_notes"]      = notes
+```
 
-**Temp file cleanup:**
-- Raw captures go to `cache/raw_captures/` (cleared by the system under storage pressure).
-- Compressed files go to `files/images/`. When "Retake Photo" is used, the previous compressed file is deleted before the new one is written.
-- On successful save, the compressed file remains because the Room DB references it. If the user abandons the flow (navigates back), the draft path in `SavedStateHandle` naturally expires with the task.
+When the draft is saved to Room, `clearDraft()` removes all keys so the same draft is never saved twice.
+
+**Frozen weather snapshot** — `SharedWeatherViewModel` is scoped to the Activity (not the nav back stack entry). The weather is set once when the user enters Create Report and is never re-fetched. `ReportViewModel.initWeatherData()` further guards against overwriting:
+
+```kotlin
+fun initWeatherData(data: WeatherData) {
+    if (_weatherData.value == null) {   // only set once
+        _weatherData.value = data
+    }
+}
+```
+
+**Temp file cleanup** — when a new photo is captured, the previous draft compressed file is deleted before the new one is saved. When the report is successfully persisted, the draft keys are cleared. The compressed file saved to the report is kept (it is the source of truth displayed in Saved Reports); the raw CameraX output file is deleted after compression.
 
 ### Tradeoffs
-- `SharedWeatherViewModel` is activity-scoped via Hilt's default scope in `WeatherSnapNavGraph`, meaning it holds data as long as the Activity is alive. This is acceptable for a single-user flow.
-- `SavedStateHandle` protects against process death but not app uninstall. Files in `filesDir` survive app restarts but not uninstalls.
-- Keeping compressed files in `filesDir` (not cache) means the OS won't delete them unexpectedly, but they require explicit cleanup on report discard. A future improvement could add a periodic cleanup job for orphaned draft images.
-- No duplicate saves: `savedSuccessfully` in `ReportUiState` triggers navigation away and `clearDraft()` removes the `SavedStateHandle` keys, preventing double-saves on recomposition.
+
+| Decision | Rationale | Tradeoff |
+|---|---|---|
+| `SavedStateHandle` for draft | Survives process death; no additional Room table or shared prefs needed | Primitives only — `WeatherData` is passed through `SharedWeatherViewModel` rather than serialised into `SavedStateHandle` |
+| Activity-scoped `SharedWeatherViewModel` | Survives navigation to camera and back without re-fetching | ViewModel lives as long as the Activity; cleared manually on save |
+| Delete old draft image on new capture | No indefinitely leaking temp files | If the delete fails (e.g. file already gone), the error is silently swallowed — acceptable since the new file is already in place |
+
+---
+
+## Testing
+
+### Unit Tests (`test/`)
+
+| Test class | What it covers |
+|---|---|
+| `WeatherRepositoryTest` | Cache hit returns data without hitting the network; cache miss fetches from API and persists result |
+| `WeatherViewModelTest` | Debounced city search emits Loading → Success; `fetchWeather` emits Loading → Success |
+| `ReportViewModelTest` | Save flow emits Loading → Success and clears draft; `onNotesChange` updates both state and `SavedStateHandle` |
+| `SavedReportsViewModelTest` | Loading trigger drives `flatMapLatest`; reports list is exposed correctly |
+
+Tests use **MockK** for mocking and **Turbine** for testing `StateFlow` / `Flow` emissions.
+
+Run unit tests:
+```bash
+./gradlew test
+```
+
+### Compose UI Tests (`androidTest/`)
+
+| Test | What it covers |
+|---|---|
+| `weatherScreen_displaysEmptyState_initially` | Idle state shows placeholder text |
+| `weatherScreen_displaysWeatherData_whenSuccess` | Success state shows city, condition, temperature, and Create Report button |
+| `savedReportsScreen_displaysEmptyState_whenNoReports` | Empty list shows the empty state message |
+| `createReportScreen_displaysWeatherAndPhotoPreview` | Create Report screen shows weather details and photo preview area |
+| `weatherScreen_searchTriggersCallback` | Search button click triggers the `onSearch` callback |
+
+Run instrumented tests (requires a connected device or emulator):
+```bash
+./gradlew connectedAndroidTest
+```
+
+---
+
+## Architecture Notes
+
+- **Two Retrofit instances** — geocoding and weather APIs have different base URLs; each gets its own `@Named` singleton in `AppModule`.
+- **Debug-only logging** — `HttpLoggingInterceptor` is added conditionally on `BuildConfig.DEBUG`, keeping release builds clean.
+- **IO-thread safety** — all Room operations are `suspend` functions called from `viewModelScope`; Hilt's default dispatcher for `@Singleton` DAOs is `Dispatchers.IO`.
+- **City cache TTL** — cached suggestions expire after 24 hours; stale entries are served if the TTL has not elapsed, even across app restarts.
+- **`NetworkUnavailableException`** — `IOException` from Retrofit is translated into a typed exception in `WeatherRepository`, which `WeatherViewModel` maps to `WeatherUiState.Offline`. This decouples the UI from Retrofit internals.
+- **Debounced click utility** — `rememberDebouncedClick` and `rememberDebouncedClickParam` in `ClickUtils.kt` prevent double-submit on buttons throughout the app.
+
+---
+
+## Known Tradeoffs
+
+- The dark theme is hardcoded (`isSystemInDarkTheme()` is respected in the API but the color scheme is always dark to match the design reference).

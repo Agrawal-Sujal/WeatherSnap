@@ -1,4 +1,5 @@
 package com.trackzio.weathersnap.ui.screens.report
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,19 +48,23 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.trackzio.weathersnap.domain.model.WeatherData
+import com.trackzio.weathersnap.ui.components.AppHeader
+import com.trackzio.weathersnap.ui.components.StatCard
+import com.trackzio.weathersnap.ui.components.WeatherCard
 import com.trackzio.weathersnap.ui.screens.weather.SharedWeatherViewModel
 import com.trackzio.weathersnap.ui.theme.AccentGreen
 import com.trackzio.weathersnap.ui.theme.AccentGreenLight
-import com.trackzio.weathersnap.ui.theme.BlueAccent
 import com.trackzio.weathersnap.ui.theme.BorderColor
 import com.trackzio.weathersnap.ui.theme.CardDark
 import com.trackzio.weathersnap.ui.theme.DarkBackground
 import com.trackzio.weathersnap.ui.theme.OrangeAccent
+import com.trackzio.weathersnap.ui.theme.OrangeAccentCard
 import com.trackzio.weathersnap.ui.theme.SurfaceDark
 import com.trackzio.weathersnap.ui.theme.TealAccent
+import com.trackzio.weathersnap.ui.theme.TealAccentCard
 import com.trackzio.weathersnap.ui.theme.TextPrimary
 import com.trackzio.weathersnap.ui.theme.TextSecondary
+import com.trackzio.weathersnap.ui.theme.White
 import com.trackzio.weathersnap.ui.util.rememberDebouncedClick
 import java.io.File
 
@@ -102,11 +105,24 @@ fun CreateReportScreen(
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
     ) {
-        ReportHeader(onBack = rememberDebouncedClick { onNavigateBack() })
+        AppHeader(
+            title = "Create Report",
+            subtitle = "Capture, compress, annotate",
+            buttonText = "Back",
+            onButtonClick = rememberDebouncedClick { onNavigateBack() }
+        )
         Spacer(modifier = Modifier.height(12.dp))
 
         weatherData?.let { weather ->
-            WeatherSnapshotCard(weather = weather)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceDark)
+            ) {
+                WeatherCard(data = weather)
+            }
             Spacer(modifier = Modifier.height(12.dp))
         }
 
@@ -136,81 +152,22 @@ fun CreateReportScreen(
             colors = ButtonDefaults.buttonColors(containerColor = AccentGreenLight)
         ) {
             if (uiState.isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = DarkBackground, strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = DarkBackground,
+                    strokeWidth = 2.dp
+                )
             } else {
-                Text("Save Report", color = DarkBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 4.dp))
+                Text(
+                    "Save Report",
+                    color = DarkBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun ReportHeader(onBack: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Brush.horizontalGradient(colors = listOf(Color(0xFF7AAB7C), Color(0xFFB5C96A))))
-            .padding(16.dp)
-    ) {
-        Column(modifier = Modifier.align(Alignment.CenterStart)) {
-            Text("Create Report", color = DarkBackground, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Text("Capture, compress, annotate", color = DarkBackground.copy(alpha = 0.7f), fontSize = 12.sp)
-        }
-        Button(
-            onClick = rememberDebouncedClick { onBack() },
-            modifier = Modifier.align(Alignment.CenterEnd),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D3D2E)),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Back", color = TextPrimary, fontSize = 13.sp)
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun WeatherSnapshotCard(weather: WeatherData) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(SurfaceDark)
-            .padding(16.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(weather.cityName, color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text(weather.condition, color = TextSecondary, fontSize = 13.sp)
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("${weather.temperature.toInt()}°C", color = AccentGreenLight, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            maxItemsInEachRow = 3
-        ) {
-            val itemModifier = Modifier.weight(1f, fill = false).widthIn(min = 90.dp)
-            StatChip("Humidity", "${weather.humidity}%", TealAccent, itemModifier)
-            StatChip("Wind", "${weather.windSpeed} m/s", BlueAccent, itemModifier)
-            StatChip("Pressure", "${weather.pressure}", OrangeAccent, itemModifier)
-        }
-    }
-}
-
-@Composable
-private fun StatChip(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.clip(RoundedCornerShape(8.dp)).background(CardDark).padding(10.dp)) {
-        Text(label, color = TextSecondary, fontSize = 11.sp)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = color, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -236,12 +193,18 @@ private fun PhotoSection(
                 .heightIn(min = 150.dp, max = 300.dp)
                 .aspectRatio(16f / 9f)
                 .clip(RoundedCornerShape(12.dp))
-                .background(CardDark),
+                .background( Brush.horizontalGradient(
+                    colors = listOf(Color(0xFF444638), Color(0xFF3E4416))
+                )),
             contentAlignment = Alignment.Center
         ) {
             AnimatedContent(
                 targetState = imagePath,
-                transitionSpec = { fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400)) },
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(400)) togetherWith fadeOut(
+                        animationSpec = tween(400)
+                    )
+                },
                 label = "photo_preview"
             ) { path ->
                 if (path != null) {
@@ -273,29 +236,42 @@ private fun PhotoSection(
             )
         }
 
-        AnimatedVisibility(visible = imagePath != null, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+        AnimatedVisibility(
+            visible = imagePath != null,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
             Column {
                 Spacer(modifier = Modifier.height(12.dp))
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     maxItemsInEachRow = 2
                 ) {
-                    SizeChip("Original", "${originalKb} KB", OrangeAccent, Modifier.weight(1f).widthIn(min = 120.dp))
-                    SizeChip("Compressed", "${compressedKb} KB", TealAccent, Modifier.weight(1f).widthIn(min = 120.dp))
+                    StatCard(
+                        label = "Original",
+                        value = "${originalKb} KB",
+                        valueColor = OrangeAccent,
+                        backgroundColor = OrangeAccentCard,
+                        modifier = Modifier
+                            .weight(1f)
+                            .widthIn(min = 120.dp)
+                            .padding(end = 8.dp)
+                    )
+
+                    StatCard(
+                        label = "Compressed",
+                        value = "${compressedKb} KB",
+                        valueColor = TealAccent,
+                        backgroundColor = TealAccentCard,
+                        modifier = Modifier
+                            .weight(1f)
+                            .widthIn(min = 120.dp)
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SizeChip(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.clip(RoundedCornerShape(8.dp)).background(CardDark).padding(12.dp)) {
-        Text(label, color = color, fontSize = 12.sp)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -314,12 +290,14 @@ private fun NotesSection(notes: String, onNotesChange: (String) -> Unit) {
         OutlinedTextField(
             value = notes,
             onValueChange = onNotesChange,
-            placeholder = { Text("Notes", color = TextSecondary) },
-            modifier = Modifier.fillMaxWidth().height(120.dp),
+            label = { Text("Notes", color = TextSecondary) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = AccentGreen,
-                unfocusedBorderColor = BorderColor,
+                unfocusedBorderColor = White,
                 focusedTextColor = TextPrimary,
                 unfocusedTextColor = TextPrimary,
                 cursorColor = AccentGreen

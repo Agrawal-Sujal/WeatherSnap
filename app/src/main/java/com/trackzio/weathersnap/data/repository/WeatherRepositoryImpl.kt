@@ -1,26 +1,29 @@
-package com.trackzio.weathersnap.data
+package com.trackzio.weathersnap.data.repository
 
-import com.trackzio.weathersnap.data.local.CityCacheDao
-import com.trackzio.weathersnap.data.local.CityCacheEntity
-import com.trackzio.weathersnap.data.local.WeatherReportDao
-import com.trackzio.weathersnap.data.local.WeatherReportEntity
+import com.trackzio.weathersnap.data.local.dao.CityCacheDao
+import com.trackzio.weathersnap.data.local.dao.WeatherReportDao
+import com.trackzio.weathersnap.data.local.entity.CityCacheEntity
+import com.trackzio.weathersnap.data.local.entity.WeatherReportEntity
 import com.trackzio.weathersnap.data.remote.api.GeocodingApi
 import com.trackzio.weathersnap.data.remote.api.WeatherApi
 import com.trackzio.weathersnap.domain.model.CityResult
 import com.trackzio.weathersnap.domain.model.WeatherData
+import com.trackzio.weathersnap.domain.repository.NetworkUnavailableException
+import com.trackzio.weathersnap.domain.repository.WeatherRepository
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class WeatherRepository @Inject constructor(
+class WeatherRepositoryImpl @Inject constructor(
     private val geocodingApi: GeocodingApi,
     private val weatherApi: WeatherApi,
     private val reportDao: WeatherReportDao,
     private val cityCacheDao: CityCacheDao
-) {
-    suspend fun searchCities(query: String): List<CityResult> {
+) : WeatherRepository {
+
+    override suspend fun searchCities(query: String): List<CityResult> {
         val cacheKey = query.lowercase().trim()
 
         // 1. Check persistent cache
@@ -59,12 +62,7 @@ class WeatherRepository @Inject constructor(
         return results
     }
 
-    /**
-     * Fetches weather from the network.
-     * Throws [NetworkUnavailableException] when the device is offline so the
-     * ViewModel can show the offline-fallback state instead of a generic error.
-     */
-    suspend fun getWeather(latitude: Double, longitude: Double, cityName: String): WeatherData {
+    override suspend fun getWeather(latitude: Double, longitude: Double, cityName: String): WeatherData {
         try {
             val response = weatherApi.getWeather(latitude, longitude)
             val current = response.current
@@ -77,14 +75,13 @@ class WeatherRepository @Inject constructor(
                 pressure = current.pressure.toInt()
             )
         } catch (e: IOException) {
-            // No connectivity or socket timeout — signal offline state
             throw NetworkUnavailableException()
         }
     }
 
-    fun getAllReports(): Flow<List<WeatherReportEntity>> = reportDao.getAllReports()
+    override fun getAllReports(): Flow<List<WeatherReportEntity>> = reportDao.getAllReports()
 
-    suspend fun saveReport(report: WeatherReportEntity): Long =
+    override suspend fun saveReport(report: WeatherReportEntity): Long =
         reportDao.insertReport(report)
 
     private fun weatherCodeToCondition(code: Int): String = when (code) {
@@ -102,5 +99,3 @@ class WeatherRepository @Inject constructor(
         else -> "Unknown"
     }
 }
-
-class NetworkUnavailableException : Exception("No internet connection")
